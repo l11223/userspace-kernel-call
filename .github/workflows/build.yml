@@ -1,0 +1,186 @@
+name: Build Userspace Kernel Call
+
+on:
+  push:
+    branches: [ main, master, dev ]
+  pull_request:
+    branches: [ main, master, dev ]
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    name: Build on Linux (Ubuntu)
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake
+    
+    - name: Create build directory
+      run: mkdir -p build
+    
+    - name: Configure CMake
+      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+    
+    - name: Build
+      run: cmake --build build --config Release -j$(nproc)
+    
+    - name: List build artifacts
+      run: |
+        echo "=== Build artifacts ==="
+        ls -lh build/
+        file build/libuserspace_kernel_call.a
+        file build/libuserspace_kernel_call.so
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: userspace-kernel-call-linux-x86_64
+        path: |
+          build/libuserspace_kernel_call.a
+          build/libuserspace_kernel_call.so
+          include/
+
+  build-android:
+    name: Build for Android ARM64
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Android NDK
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r25c
+        add-to-path: true
+    
+    - name: Create build directory
+      run: mkdir -p build-android
+    
+    - name: Configure CMake for Android ARM64
+      run: |
+        cmake -B build-android -S . \
+          -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
+          -DANDROID_ABI=arm64-v8a \
+          -DANDROID_PLATFORM=android-21 \
+          -DCMAKE_BUILD_TYPE=Release
+    
+    - name: Build
+      run: cmake --build build-android --config Release -j$(nproc)
+    
+    - name: List build artifacts
+      run: |
+        echo "=== Android ARM64 build artifacts ==="
+        ls -lh build-android/
+        file build-android/libuserspace_kernel_call.a
+        file build-android/libuserspace_kernel_call.so
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: userspace-kernel-call-android-arm64
+        path: |
+          build-android/libuserspace_kernel_call.a
+          build-android/libuserspace_kernel_call.so
+          include/
+
+  build-android-arm32:
+    name: Build for Android ARM32
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Android NDK
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r25c
+        add-to-path: true
+    
+    - name: Create build directory
+      run: mkdir -p build-android-arm32
+    
+    - name: Configure CMake for Android ARM32
+      run: |
+        cmake -B build-android-arm32 -S . \
+          -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
+          -DANDROID_ABI=armeabi-v7a \
+          -DANDROID_PLATFORM=android-21 \
+          -DCMAKE_BUILD_TYPE=Release
+    
+    - name: Build
+      run: cmake --build build-android-arm32 --config Release -j$(nproc)
+    
+    - name: List build artifacts
+      run: |
+        echo "=== Android ARM32 build artifacts ==="
+        ls -lh build-android-arm32/
+        file build-android-arm32/libuserspace_kernel_call.a
+        file build-android-arm32/libuserspace_kernel_call.so
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: userspace-kernel-call-android-arm32
+        path: |
+          build-android-arm32/libuserspace_kernel_call.a
+          build-android-arm32/libuserspace_kernel_call.so
+          include/
+
+  create-release:
+    name: Create Release Package
+    needs: [build-linux, build-android, build-android-arm32]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Create release package
+      run: |
+        mkdir -p release/lib/linux-x86_64
+        mkdir -p release/lib/android-arm64
+        mkdir -p release/lib/android-arm32
+        mkdir -p release/include
+        mkdir -p release/docs
+        
+        # Copy libraries
+        cp userspace-kernel-call-linux-x86_64/*.a release/lib/linux-x86_64/
+        cp userspace-kernel-call-linux-x86_64/*.so release/lib/linux-x86_64/
+        cp userspace-kernel-call-android-arm64/*.a release/lib/android-arm64/
+        cp userspace-kernel-call-android-arm64/*.so release/lib/android-arm64/
+        cp userspace-kernel-call-android-arm32/*.a release/lib/android-arm32/
+        cp userspace-kernel-call-android-arm32/*.so release/lib/android-arm32/
+        
+        # Copy headers
+        cp -r include/* release/include/
+        
+        # Copy documentation
+        cp README.md release/
+        cp ARCHITECTURE.md release/docs/
+        cp USAGE_EXAMPLES.md release/docs/
+        
+        # Create archive
+        cd release
+        tar -czf ../userspace-kernel-call-release.tar.gz .
+        cd ..
+        
+        echo "=== Release package created ==="
+        ls -lh userspace-kernel-call-release.tar.gz
+    
+    - name: Upload release package
+      uses: actions/upload-artifact@v3
+      with:
+        name: userspace-kernel-call-release
+        path: userspace-kernel-call-release.tar.gz
