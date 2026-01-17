@@ -25,7 +25,6 @@ set(SOURCES
     src/stealth_verifier.cpp
     src/performance_monitor.cpp
     src/userspace_kernel_call.cpp
-    src/magisk_interface.cpp
     src/skroot_interface.cpp
 )
 
