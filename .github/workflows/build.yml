@@ -38,7 +38,7 @@ jobs:
         file build/libuserspace_kernel_call.so
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: userspace-kernel-call-linux-x86_64
         path: |
@@ -82,7 +82,7 @@ jobs:
         file build-android/libuserspace_kernel_call.so
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: userspace-kernel-call-android-arm64
         path: |
@@ -126,7 +126,7 @@ jobs:
         file build-android-arm32/libuserspace_kernel_call.so
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: userspace-kernel-call-android-arm32
         path: |
@@ -145,7 +145,7 @@ jobs:
       uses: actions/checkout@v3
     
     - name: Download all artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
     
     - name: Create release package
       run: |
@@ -180,7 +180,7 @@ jobs:
         ls -lh userspace-kernel-call-release.tar.gz
     
     - name: Upload release package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: userspace-kernel-call-release
         path: userspace-kernel-call-release.tar.gz
