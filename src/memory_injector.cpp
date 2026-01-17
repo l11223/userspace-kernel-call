@@ -1,4 +1,5 @@
 #include "memory_injector.h"
+#include "magisk_interface.h"
 
 namespace ukc {
 
@@ -45,6 +46,52 @@ Result<void> MemoryInjector::initialize(
     
     initialized_ = true;
     return Result<void>::success();
+}
+
+Result<std::vector<uint8_t>> MemoryInjector::readKernelMemory(
+    uintptr_t address,
+    size_t size
+) {
+    if (size == 0) {
+        return Result<std::vector<uint8_t>>::success(std::vector<uint8_t>());
+    }
+    
+    // 通过 Magisk 接口读取内核内存
+    std::vector<uint8_t> buffer(size);
+    ssize_t bytesRead = magisk::SafeMemoryModifier::read_kernel_memory(
+        address, buffer.data(), size
+    );
+    
+    if (bytesRead < 0) {
+        return Result<std::vector<uint8_t>>::error(
+            "Failed to read kernel memory at 0x" + std::to_string(address)
+        );
+    }
+    
+    buffer.resize(bytesRead);
+    return Result<std::vector<uint8_t>>::success(std::move(buffer));
+}
+
+Result<size_t> MemoryInjector::writeKernelMemory(
+    uintptr_t address,
+    const std::vector<uint8_t>& data
+) {
+    if (data.empty()) {
+        return Result<size_t>::success(0);
+    }
+    
+    // 通过 Magisk 接口写入内核内存（自动处理内存保护）
+    int result = magisk::SafeMemoryModifier::modify_kernel_memory(
+        address, data.data(), data.size()
+    );
+    
+    if (result != 0) {
+        return Result<size_t>::error(
+            "Failed to write kernel memory at 0x" + std::to_string(address)
+        );
+    }
+    
+    return Result<size_t>::success(data.size());
 }
 
 Result<std::vector<uint8_t>> MemoryInjector::readMemory(

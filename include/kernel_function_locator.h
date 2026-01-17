@@ -71,6 +71,11 @@ private:
     Result<void> loadKernelMemoryMap();
     
     /**
+     * 通过 Magisk 接口定位函数（安卓15推荐）
+     */
+    Result<uintptr_t> locateFunctionViaMagisk(const std::string& functionName);
+    
+    /**
      * 从 /proc/kallsyms 定位函数
      */
     Result<uintptr_t> locateFunctionFromKallsyms(const std::string& functionName);

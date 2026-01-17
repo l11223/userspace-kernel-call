@@ -56,6 +56,22 @@ public:
         std::vector<MemoryOperation>& operations
     );
 
+    /**
+     * 读取内核内存（通过 Magisk 接口，安卓15推荐）
+     */
+    Result<std::vector<uint8_t>> readKernelMemory(
+        uintptr_t address,
+        size_t size
+    );
+    
+    /**
+     * 写入内核内存（通过 Magisk 接口，安卓15推荐）
+     */
+    Result<size_t> writeKernelMemory(
+        uintptr_t address,
+        const std::vector<uint8_t>& data
+    );
+
 private:
     std::shared_ptr<KernelFunctionLocator> locator_;
     std::shared_ptr<KernelCaller> caller_;
