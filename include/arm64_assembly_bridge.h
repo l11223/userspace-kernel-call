@@ -2,6 +2,7 @@
 #define USERSPACE_KERNEL_CALL_ARM64_ASSEMBLY_BRIDGE_H
 
 #include <cstdint>
+#include <cstddef>
 
 namespace ukc {
 namespace arm64 {
