@@ -27,7 +27,7 @@ static skroot_version_t skroot_version = nullptr;
  */
 static Result<bool> load_skroot_library() {
     if (skroot_handle != nullptr) {
-        return Result<bool>::ok(true);
+        return Result<bool>::success(true);
     }
 
     // 尝试加载 SKRoot 库
@@ -63,12 +63,12 @@ static Result<bool> load_skroot_library() {
         return Result<bool>::error("Failed to load SKRoot functions");
     }
 
-    return Result<bool>::ok(true);
+    return Result<bool>::success(true);
 }
 
 Result<bool> initialize_skroot() {
     auto load_result = load_skroot_library();
-    if (!load_result.is_ok()) {
+    if (!load_result.isSuccess()) {
         return load_result;
     }
 
@@ -78,18 +78,18 @@ Result<bool> initialize_skroot() {
         return Result<bool>::error("SKRoot initialization failed with code: " + std::to_string(ret));
     }
 
-    return Result<bool>::ok(true);
+    return Result<bool>::success(true);
 }
 
 Result<bool> is_skroot_available() {
     auto load_result = load_skroot_library();
-    if (!load_result.is_ok()) {
-        return Result<bool>::ok(false);
+    if (!load_result.isSuccess()) {
+        return Result<bool>::success(false);
     }
 
     // 检查是否可以调用 SKRoot
     int ret = skroot_init();
-    return Result<bool>::ok(ret == 0);
+    return Result<bool>::success(ret == 0);
 }
 
 Result<uint64_t> call_kernel_function(
@@ -120,7 +120,7 @@ Result<uint64_t> call_kernel_function(
         return Result<uint64_t>::error("SKRoot kernel call failed with code: " + std::to_string(ret));
     }
 
-    return Result<uint64_t>::ok((uint64_t)ret);
+    return Result<uint64_t>::success((uint64_t)ret);
 }
 
 Result<size_t> read_kernel_memory(
@@ -142,7 +142,7 @@ Result<size_t> read_kernel_memory(
         return Result<size_t>::error("SKRoot read memory failed with code: " + std::to_string(ret));
     }
 
-    return Result<size_t>::ok((size_t)ret);
+    return Result<size_t>::success((size_t)ret);
 }
 
 Result<size_t> write_kernel_memory(
@@ -164,7 +164,7 @@ Result<size_t> write_kernel_memory(
         return Result<size_t>::error("SKRoot write memory failed with code: " + std::to_string(ret));
     }
 
-    return Result<size_t>::ok((size_t)ret);
+    return Result<size_t>::success((size_t)ret);
 }
 
 Result<const char*> get_skroot_version() {
@@ -177,7 +177,7 @@ Result<const char*> get_skroot_version() {
         return Result<const char*>::error("Failed to get SKRoot version");
     }
 
-    return Result<const char*>::ok(version);
+    return Result<const char*>::success(version);
 }
 
 void cleanup_skroot() {
