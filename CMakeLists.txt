@@ -25,6 +25,8 @@ set(SOURCES
     src/stealth_verifier.cpp
     src/performance_monitor.cpp
     src/userspace_kernel_call.cpp
+    src/magisk_interface.cpp
+    src/skroot_interface.cpp
 )
 
 # 创建静态库
@@ -39,6 +41,10 @@ if(NOT ANDROID)
     target_link_libraries(userspace_kernel_call pthread)
     target_link_libraries(userspace_kernel_call_shared pthread)
 endif()
+
+# 链接 dl 库（用于动态加载 SKRoot）
+target_link_libraries(userspace_kernel_call dl)
+target_link_libraries(userspace_kernel_call_shared dl)
 
 # 安装
 install(TARGETS userspace_kernel_call userspace_kernel_call_shared
