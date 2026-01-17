@@ -34,9 +34,11 @@ add_library(userspace_kernel_call STATIC ${SOURCES})
 add_library(userspace_kernel_call_shared SHARED ${SOURCES})
 set_target_properties(userspace_kernel_call_shared PROPERTIES OUTPUT_NAME userspace_kernel_call)
 
-# 链接 pthread
-target_link_libraries(userspace_kernel_call pthread)
-target_link_libraries(userspace_kernel_call_shared pthread)
+# 链接 pthread（仅在非 Android 平台）
+if(NOT ANDROID)
+    target_link_libraries(userspace_kernel_call pthread)
+    target_link_libraries(userspace_kernel_call_shared pthread)
+endif()
 
 # 安装
 install(TARGETS userspace_kernel_call userspace_kernel_call_shared
